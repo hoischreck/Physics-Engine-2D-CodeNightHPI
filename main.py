@@ -22,7 +22,7 @@ class PhysicsObj(GraphicalObj): #ABC
         self.color = (0, 0, 0, 0)
 
     def step(self, dt: float):
-        self.v = self.v + Vector2D(0, 0) # todo accelation
+        self.v = self.v + Vector2D(0, 0) # todo acceleration
 
         self.prev_pos = self.pos
         self.pos = self.pos + (self.v * dt)
@@ -30,6 +30,8 @@ class PhysicsObj(GraphicalObj): #ABC
     def collide(self, dt: float, other: PhysicsObj):
         distance = self.pos - other.pos
         if distance.magnitude() < (self.radius + other.radius):
+            # todo: move back
+
             # calculate the new speed
             v = (
                 self.v * self.mass + 
@@ -38,11 +40,10 @@ class PhysicsObj(GraphicalObj): #ABC
                 self.mass + other.mass
             )
 
-            # calculate difference between new pseed and current speed
+            # calculate difference between new speed and current speed
             diff = v - self.v
 
             self.step_acc = self.step_acc + diff
-            #print("collision")
     
     def postCollide(self, dt: float):
         self.pos = self.pos + self.step_movement
