@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from numpy import tan
+
 from PygameCollection.game import Base2DGame
 from PygameCollection.gameObjects import GraphicalObj
-from PygameCollection.math import Vector2D
+from PygameCollection.math import Line2D, Vector2D
 from abc import ABC, abstractmethod
 import pygame
 pygame.init()
@@ -39,9 +41,11 @@ class PhysicsObj(GraphicalObj): #ABC
             ) / (
                 self.mass + other.mass
             )
+            tangentLine = Line2D(self.pos,other.pos)
 
             # calculate difference between new speed and current speed
             diff = v - self.v
+            diff = tangentLine.reflectVector(diff)
 
             self.step_acc = self.step_acc + diff
     
@@ -107,13 +111,13 @@ class PhysicsSim2D(Base2DGame):
     def setup(self):
         self.physicsManager = PhysicsManager()
         self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(100, 100), velocity=Vector2D(20, 0), mass=500, radius=20)
+            PhysicsCircle(self, pos=Vector2D(400, 400), velocity=Vector2D(-20, -20), mass=200, radius=20)
         )
         self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(200, 100), velocity=Vector2D(1, 0), mass=50, radius=15)
+            PhysicsCircle(self, pos=Vector2D(450, 300), velocity=Vector2D(1, 2), mass=50, radius=5)
         )
         self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(500, 100), velocity=Vector2D(-20, 0), mass=500, radius=15)
+            PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(15, 20), mass=500, radius=50)
         )
 
         self.drawingQueue.append(self.physicsManager)
