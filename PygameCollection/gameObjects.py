@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from PygameCollection.math import Vector2D, rad2deg
 import pygame
 
+
 class GraphicalObj(ABC):
 	def __init__(self, game):
 		self.game = game
@@ -26,6 +27,7 @@ class GraphicalObj(ABC):
 				return r
 			return
 		return __inner
+
 
 # Basic class of game objects with visual representation
 class Sprite2D(pygame.sprite.Sprite, GraphicalObj, ABC):

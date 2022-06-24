@@ -2,11 +2,14 @@ import math
 from math import pi, sin, cos, acos, tan
 import numpy as np
 
+
 def rad2deg(rad):
 	return 180*rad/pi
 
+
 def deg2rad(deg):
 	return pi*deg/180
+
 
 class Vector2D:
 	# np.double = float64
@@ -193,6 +196,7 @@ class Matrix2D:
 		i = Vector2D.fromRadiant(radiant)
 		j = Vector2D.fromRadiant(radiant+pi/2)
 		return Matrix2D.fromVectors(i, j)
+
 
 # todo: implement? -> change convention to work with vectors instead of x, y pairs?
 # what about Vector(0, 0)?

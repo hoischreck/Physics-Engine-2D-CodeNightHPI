@@ -1,6 +1,9 @@
+### Eigentlich nicht wichtig ###
+
 import pygame
 
 from PygameCollection.math import Vector2D, Matrix2D
+
 
 #todo: review, check if file systematic is sensible
 #Linear vector art allows create polygons, by following a path of vectors

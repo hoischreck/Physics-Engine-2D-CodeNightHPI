@@ -2,6 +2,7 @@ import pygame
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 
+
 # Basic implementation of a drawing queue
 class BaseDrawingQueue:
 	def __init__(self, drawableObjects=None):
@@ -20,6 +21,7 @@ class BaseDrawingQueue:
 	def drawAll(self):
 		for i in self.items[::-1]:
 			i.draw()
+
 
 class Base2DGame(ABC):
 	def __init__(self, name="[PLACEHOLDER]", tps=60):
@@ -87,9 +89,11 @@ class Base2DGame(ABC):
 		#self.screen.blit(pygame.transform.rotate(self.screen, 180), (0, 0))
 		pygame.display.flip()
 
+
 class KeyType(Enum):
 	PYGAME = auto()
 	STRING = auto()
+
 
 class Keys:
 	def __init__(self, pygameKeys, pygameEvents):

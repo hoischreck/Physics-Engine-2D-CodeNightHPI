@@ -3,6 +3,7 @@ from PygameCollection.gameObjects import MovableSprite
 from PygameCollection.math import Vector2D
 from math import pi
 
+
 #todo: automate _tryUpdate paradigm
 # -> collision detection uses scaling property of actions
 class BasicMSpriteController(ObjController):
