@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from PygameCollection.game import Base2DGame
 from PygameCollection.gameObjects import GraphicalObj
 from PygameCollection.math import Vector2D
@@ -7,25 +9,32 @@ pygame.init()
 
 
 class PhysicsObj(GraphicalObj): #ABC
-    def __init__(self, game, pos: Vector2D, mass: float, velocity: Vector2D = Vector2D(0, 0)):
+    def __init__(self, game, pos: Vector2D, velocity: Vector2D, mass: float):
         super().__init__(game)
         self.pos = pos
-        self.mass = mass
+        self.prev_pos = self.pos
+        self.step_movement = Vector2D(0, 0)
 
-        #self.v0 = Vector2D(0, 0)
+        self.mass = mass
 
         self.v = velocity
         self.color = (0, 0, 0, 0)
 
     def step(self, dt: float):
-        self.v = self.v + PhysicsManager.G * dt
+        self.v = self.v + Vector2D(0, 0) # todo accelation
 
-        self.pos = self.pos + self.v
+        self.prev_pos = self.pos
+        self.pos = self.pos + (self.v * dt)
+
+    def collide(self, dt: float, other: PhysicsObj):
+        distance = self.pos - other.pos
+        if distance.magnitude() < (self.radius + other.radius):
+            print("collision")
 
 
 class PhysicsCircle(PhysicsObj):
-    def __init__(self, game, pos, mass, velocity, radius):
-        super().__init__(game, pos, mass, velocity)
+    def __init__(self, game, pos, velocity, mass, radius):
+        super().__init__(game, pos, velocity, mass)
         self.radius = radius
 
 
@@ -37,6 +46,7 @@ class PhysicsCircle(PhysicsObj):
 
 class PhysicsManager:
     G = Vector2D(0, 9.81 / 10)
+    dt = 0.1
 
     def __init__(self):
         self.physicObjs = set()
@@ -48,12 +58,19 @@ class PhysicsManager:
         self.physicObjs.remove(obj)
 
     def draw(self):
-        for o in self.physicObjs:
-            o.draw()
+        for obj in self.physicObjs:
+            obj.draw()
 
     def applyStep(self):
-        for o in self.physicObjs:
-            o.step(0.1)
+        for obj in self.physicObjs:
+            obj.step(self.dt)
+
+    def applyCollisions(self):
+        for obj in self.physicObjs:
+            for other in self.physicObjs:
+                if obj is not other:
+                    obj.collide(self.dt, other)
+
 
 
 class PhysicsSim2D(Base2DGame):
@@ -66,13 +83,17 @@ class PhysicsSim2D(Base2DGame):
     def setup(self):
         self.physicsManager = PhysicsManager()
         self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(100, 100), mass=100, radius=10, velocity=Vector2D(2, 2))
+            PhysicsCircle(self, pos=Vector2D(100, 100), velocity=Vector2D(5, 5), mass=100, radius=20)
+        )
+        self.physicsManager.addObj(
+            PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(-5, -3), mass=50, radius=15)
         )
 
         self.drawingQueue.append(self.physicsManager)
 
     def loop(self):
         self.physicsManager.applyStep()
+        self.physicsManager.applyCollisions()
 
 
 if __name__ == "__main__":
