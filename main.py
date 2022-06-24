@@ -14,6 +14,7 @@ class PhysicsObj(GraphicalObj): #ABC
         self.pos = pos
         self.prev_pos = self.pos
         self.step_movement = Vector2D(0, 0)
+        self.step_acc = Vector2D(0, 0)
 
         self.mass = mass
 
@@ -29,8 +30,26 @@ class PhysicsObj(GraphicalObj): #ABC
     def collide(self, dt: float, other: PhysicsObj):
         distance = self.pos - other.pos
         if distance.magnitude() < (self.radius + other.radius):
-            print("collision")
+            # calculate the new speed
+            v = (
+                self.v * self.mass + 
+                (other.v * 2 - self.v) * other.mass
+            ) / (
+                self.mass + other.mass
+            )
 
+            # calculate difference between new pseed and current speed
+            diff = v - self.v
+
+            self.step_acc = self.step_acc + diff
+            #print("collision")
+    
+    def postCollide(self, dt: float):
+        self.pos = self.pos + self.step_movement
+        self.step_movement = Vector2D(0, 0)
+
+        self.v = self.v + self.step_acc
+        self.step_acc = Vector2D(0, 0)
 
 class PhysicsCircle(PhysicsObj):
     def __init__(self, game, pos, velocity, mass, radius):
@@ -71,6 +90,10 @@ class PhysicsManager:
                 if obj is not other:
                     obj.collide(self.dt, other)
 
+    def applyPostCollisions(self):
+        for obj in self.physicObjs:
+            obj.postCollide(self.dt)
+
 
 
 class PhysicsSim2D(Base2DGame):
@@ -83,10 +106,13 @@ class PhysicsSim2D(Base2DGame):
     def setup(self):
         self.physicsManager = PhysicsManager()
         self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(100, 100), velocity=Vector2D(5, 5), mass=100, radius=20)
+            PhysicsCircle(self, pos=Vector2D(100, 100), velocity=Vector2D(20, 0), mass=500, radius=20)
         )
         self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(-5, -3), mass=50, radius=15)
+            PhysicsCircle(self, pos=Vector2D(200, 100), velocity=Vector2D(1, 0), mass=50, radius=15)
+        )
+        self.physicsManager.addObj(
+            PhysicsCircle(self, pos=Vector2D(500, 100), velocity=Vector2D(-20, 0), mass=500, radius=15)
         )
 
         self.drawingQueue.append(self.physicsManager)
@@ -94,6 +120,7 @@ class PhysicsSim2D(Base2DGame):
     def loop(self):
         self.physicsManager.applyStep()
         self.physicsManager.applyCollisions()
+        self.physicsManager.applyPostCollisions()
 
 
 if __name__ == "__main__":
