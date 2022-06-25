@@ -124,6 +124,7 @@ class Vector2D:
 	def copy(cls, v):
 		return Vector2D(v.x, v.y)
 
+	#todo: gibt original Vektor zurück?
 	@classmethod
 	def asUnitVector(cls, v):
 		newVec = Vector2D.copy(v)
@@ -177,6 +178,7 @@ class Vector2D:
 		assert isinstance(matrix, Matrix2D)
 		return Vector2D.fromIterable(v1.vec.dot(matrix.matx))
 
+
 class Matrix2D:
 	def __init__(self, formattedList): # format of iterable must be in analogy to matrix
 		self.matx = np.array(formattedList, dtype=np.double)
@@ -223,9 +225,47 @@ class Straight2D:
 			else:
 				return (x - self.sV.x) / (self.dV.x) # =v
 
+	def intersectsStraight(self, straight):
+		mSelf = self.dV.slope()
+		mOther = straight.dV.slope()
+		xSelf, ySelf = self.sV.x, self.sV.y
+		xOther, yOther = straight.sV.x, straight.sV.y
+
+		# jeweils unendliche Steigung
+		if mSelf is None and mOther is None:
+			return self.sV.x == straight.sV.x
+		elif mSelf == mOther:
+			return False
+		else:
+			return True
+
+	def intersectsStraightPos(self, straight):
+		mSelf = self.dV.slope()
+		mOther = straight.dV.slope()
+		xSelf, ySelf = self.sV.x, self.sV.y
+		xOther, yOther = straight.sV.x, straight.sV.y
+
+		# jeweils unendliche Steigung
+		if mSelf is None and mOther is None:
+			return self.sV.x == straight.sV.x
+		elif mSelf == mOther:
+			return False
+		elif mSelf == None:
+			x = xSelf
+		elif mOther == None:
+			x = xOther
+		else:
+			x = (mOther * xOther - mSelf * xSelf + ySelf - yOther) / (mOther - mSelf)
+		y = mSelf * (x - xSelf) + ySelf
+		return x, y
+
 	@classmethod
 	def fromStartEnd(cls, start: Vector2D, end: Vector2D):
 		return Straight2D(start, end-start)
+
+	@classmethod
+	def fromLine(cls, line):
+		return Straight2D.fromStartEnd(line.start, line.end)
 
 
 class Line2D:
@@ -233,11 +273,13 @@ class Line2D:
 		self.start = start
 		self.end = end
 		self.dV = end-start
+		self.length = self.dV.magnitude()
 		self.norm = Vector2D.getNormVec(self.dV)
 
 	def distanceToPoint(self, x, y):
 		m = self.dV.slope()
 		xp = self.start.x if m is None else (m ** 2 * self.start.x + x - m * (self.start.y - y)) / (m ** 2 + 1)
+
 		yp = y if m is None else m * (xp - self.start.x) + self.start.y
 		# if line isn't the closest reference point, start and end point are taken as reference
 		if self.includesPoint(xp, yp):
@@ -245,6 +287,21 @@ class Line2D:
 		else:
 			return min(Point2D.distance(x, y, *self.start.toTuple()), Point2D.distance(x, y, *self.end.toTuple()))
 
+	def closestPointOnLine(self, x, y):
+		m = self.dV.slope()
+		xp = self.start.x if m is None else (m ** 2 * self.start.x + x - m * (self.start.y - y)) / (m ** 2 + 1)
+
+		yp = y if m is None else m * (xp - self.start.x) + self.start.y
+		# if line isn't the closest reference point, start and end point are taken as reference
+		if self.includesPoint(xp, yp):
+			return xp, yp
+		else:
+			if Point2D.distance(x, y, *self.start.toTuple()) < Point2D.distance(x, y, *self.end.toTuple()):
+				return self.start.toTuple()
+			else:
+				return self.end.toTuple()
+
+	#todo: combine above?
 
 	def includesPoint(self, x, y):
 		#todo: rounding is necessary (any better method or more general approach)? (also see StraightClass)
@@ -272,10 +329,83 @@ class Line2D:
 		if v.enclosedAngle(normVec) > pi / 2:
 			normVec.toCounter()  # todo: change logic to return a new vector?
 		v = Vector2D.fromSymReflection(v, normVec)
-		v.toUnitVec()
+		#v.toUnitVec()
 		v.toCounter()
 		return v
 
+	def intersectsLine(self, line):
+		mSelf = self.dV.slope()
+		mOther = line.dV.slope()
+		xSelf, ySelf = self.start.x, self.start.y
+		xOther, yOther = line.start.x, line.start.y
+
+		# jeweils unendliche Steigung
+		if mSelf is None and mOther is None:
+			return self.start.x == line.start.x
+		elif mSelf == mOther:
+			return False
+		elif mSelf == None:
+			x = xSelf
+		elif mOther == None:
+			x = xOther
+		else:
+			x = (mOther * xOther - mSelf * xSelf + ySelf - yOther) / (mOther - mSelf)
+		y = mSelf * (x - xSelf) + ySelf
+
+		x = (mOther*xOther-mSelf*xSelf+ySelf-yOther)/(mOther-mSelf)
+		y = mSelf*(x-xSelf)+ySelf
+		return self.includesPoint(x, y) and line.includesPoint(x, y)
+
+	def intersectsLinePos(self, line):
+		mSelf = self.dV.slope()
+		mOther = line.dV.slope()
+		xSelf, ySelf = self.start.x, self.start.y
+		xOther, yOther = line.start.x, line.start.y
+
+		# jeweils unendliche Steigung
+		if mSelf is None and mOther is None:
+			return self.start.x == line.start.x
+		elif mSelf == mOther:
+			return False
+		elif mSelf == None:
+			x = xSelf
+		elif mOther == None:
+			x = xOther
+		else:
+			x = (mOther*xOther-mSelf*xSelf+ySelf-yOther)/(mOther-mSelf)
+		y = mSelf*(x-xSelf)+ySelf
+
+
+		if self.includesPoint(x, y) and line.includesPoint(x, y):
+			return x, y
+		return None
+
+	#todo: test
+	def intersectsStraight(self, straight: Straight2D):
+		mSelf = self.dV.slope()
+		mOther = straight.dV.slope()
+		xSelf, ySelf = self.start.x, self.start.y
+		xOther, yOther = straight.sV.x, straight.sV.y
+
+		# jeweils unendliche Steigung
+		if mSelf is None and mOther is None:
+			return self.start.x == straight.sV.x
+		elif mSelf == mOther:
+			return False
+		elif mSelf == None:
+			x = xSelf
+		elif mOther == None:
+			x = xOther
+		else:
+			x = (mOther * xOther - mSelf * xSelf + ySelf - yOther) / (mOther - mSelf)
+		y = mSelf * (x - xSelf) + ySelf
+
+		x = (mOther * xOther - mSelf * xSelf + ySelf - yOther) / (mOther - mSelf)
+		y = mSelf * (x - xSelf) + ySelf
+
+		if self.includesPoint(x, y):
+			return x, y
+		return None
 
 class Point2D:
 	@classmethod
