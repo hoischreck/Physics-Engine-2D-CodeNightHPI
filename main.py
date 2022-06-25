@@ -86,7 +86,6 @@ class PhysicsCircle(PhysicsObj):
 
         baseLine = Line2D(prevPos, self.pos)
         offsetH = Vector2D.asUnitVector(baseLine.dV) * self.radius
-
         lineMiddle = Line2D(baseLine.start+offsetH, baseLine.end-offsetH)
         #
 
@@ -97,20 +96,22 @@ class PhysicsCircle(PhysicsObj):
         for w in self.game.map.walls:
             if (p := lineMiddle.intersectsLinePos(w.line)) is not None or (pointCollision := ((w.line.distanceToPoint(*self.pos.toTuple())) <= self.radius)):
                 if pointCollision:
-                    p = w.line.closestPointOnLine(*self.pos.toTuple())
+                    p = Vector2D.fromIterable(w.line.closestPointOnLine(*self.pos.toTuple()))
                     #pygame.draw.circle(self.screen, (255, 0, 0), p, 5)
+                    d = self.pos-p
+                    du = Vector2D.asUnitVector(d)
+                    self.pos = self.pos + du * (self.radius-d.magnitude())
 
-                d = Vector2D.asUnitVector(baseLine.dV)
-                d.toCounter()
+                else:
+                    d = Vector2D.asUnitVector(baseLine.dV)
+                    d.toCounter()
 
-                self.pos = Vector2D.fromIterable(p) + d * self.radius/sin(d.enclosedAngle(w.line.dV))
+                    self.pos = Vector2D.fromIterable(p) + d * self.radius/sin(d.enclosedAngle(w.line.dV))
 
                 self.v = w.line.reflectVector(self.v)
 
                 #todo: more collision possible?
                 break
-
-
 
 
 class PhysicsManager:
@@ -136,36 +137,37 @@ class PhysicsManager:
 
 class PhysicsSim2D(Base2DGame):
     def __init__(self):
-        super().__init__()
+        super().__init__(windowSize=(1080, 720))
         #self.windowCaption = "2D-Physics-Engine" #todo: implement
-        self.windowSize = (1080, 720)
         self.physicsManager = None
         self.tps = 60
 
     def setup(self):
         self.physicsManager = PhysicsManager()
-        self.c = PhysicsCircle(self, pos=Vector2D(400, 350), mass=100, radius=15, velocity=Vector2D(1, 1)*200
-                               )
-        self.physicsManager.addObj(
-            self.c
-        )
         self.map = Map(self)
 
         #self.map.walls.add(Wall(self, Vector2D(200, 200), Vector2D(700, 210)))
         #self.map.walls.add(Wall(self, Vector2D(100, 400), Vector2D(1000, 300)))
 
-        self.map.addWallH((100, 100), 800)
-        self.map.addWallH((100, 400), 800)
-        self.map.addWallV((100, 100), 300)
-        self.map.addWallV((900, 100), 300)
+        self.map.addWallH((0, 0), self.w)
+        self.map.addWallH((0, self.h), self.w)
+        self.map.addWallV((0, 0), self.h)
+        self.map.addWallV((self.w, 0), self.h)
 
         self.drawingQueue.append(self.physicsManager)
         self.drawingQueue.append(self.map)
 
     def loop(self):
         self.physicsManager.applyStep()
-
         #showVector(self.screen, self.c.v, *self.c.pos.toTuple())
+
+        if self.mouse.heldDown(1):
+            # create circle
+            self.physicsManager.addObj(
+                PhysicsCircle(game=self, pos=Vector2D.fromIterable(self.mouse.getPos()), velocity=Vector2D(1, 1), mass=10, radius=20)
+            )
+
+
 
 if __name__ == "__main__":
     i = PhysicsSim2D()
