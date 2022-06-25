@@ -1,6 +1,7 @@
 import pygame
 from PygameCollection.gameObjects import GraphicalObj
 from PygameCollection.math import Line2D, Vector2D
+import csv
 
 
 class Wall(GraphicalObj):
@@ -17,6 +18,8 @@ class Wall(GraphicalObj):
 
 
 class Map(GraphicalObj):
+    DATA_DELIMITER = ","
+
     def __init__(self, game):
         super().__init__(game)
         self.walls = list()
@@ -35,6 +38,18 @@ class Map(GraphicalObj):
     def removeLast(self, minAmount=0):
         if len(self.walls) > minAmount:
             del self.walls[-1]
+
+    def save(self, filepath):
+        # saves each wall as a 4 values (start_x, start_y, end_x, end_y)
+        with open(f"{filepath}.csv", "w", newline="", encoding="utf8") as f:
+            csvWriter = csv.writer(f, delimiter=Map.DATA_DELIMITER)
+            csvWriter.writerows([(*w.start.toTuple(), *w.end.toTuple()) for w in self.walls])
+
+    def load(self, filepath):
+        with open(f"{filepath}.csv", "r", encoding="utf8") as f:
+            csvReader = csv.reader(f, delimiter=Map.DATA_DELIMITER)
+            for l in csvReader:
+                self.addWall((int(l[0]), int(l[1])), (int(l[2]), int(l[3])))
 
     def addWallH(self, start, length):
         self.addWall(start, (start[0] + length, start[1]))

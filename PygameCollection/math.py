@@ -1,7 +1,6 @@
 from cmath import isnan
 import math
 from math import pi, sin, cos, acos, tan
-from types import NoneType
 import numpy as np
 
 
