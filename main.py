@@ -24,42 +24,51 @@ class PhysicsSim2D(Base2DGame):
         self.collisionActive = True
         self.golobalElasicityModifer = 1
 
+        self.spawnDelay = 5
+        self.lastSpawn = 0
+
+        self.startPos, endPos = None, None
+        self.spawnSpeed = 10
+
+
     def setup(self):
         clock = pygame.time.Clock()
         clock.tick(self.tps)
 
         self.physicsManager = PhysicsManager(self)
 
-        for _ in range(0, 25):
-            radius = randrange(20, 40)
-            self.physicsManager.addObj(
-                PhysicsCircle(self, pos=Vector2D(
-                    random() * self.windowSize[0], random() * self.windowSize[1]), velocity=Vector2D(
-                    randrange(-20, 20), randrange(-20, 20)), mass=radius, elasticity=randrange(30, 90) / 100, radius=radius)
-            )
-
-        self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(
-                15, 20), mass=500, elasticity=0.7, radius=50)
-        )
-        self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(
-                300, 300), velocity=Vector2D(-20, -20), mass=200, elasticity=0.7, radius=20)
-        )
-        self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(250, 300), velocity=Vector2D(
-                1, 0.5), mass=50, elasticity=0.7, radius=5)
-        )
+        # for _ in range(0, 25):
+        #     radius = randrange(20, 40)
+        #     self.physicsManager.addObj(
+        #         PhysicsCircle(self, pos=Vector2D(
+        #             random() * self.windowSize[0], random() * self.windowSize[1]), velocity=Vector2D(
+        #             randrange(-20, 20), randrange(-20, 20)), mass=radius, elasticity=randrange(30, 90) / 100, radius=radius)
+        #     )
+        #
+        # self.physicsManager.addObj(
+        #     PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(
+        #         15, 20), mass=500, elasticity=0.7, radius=50)
+        # )
+        # self.physicsManager.addObj(
+        #     PhysicsCircle(self, pos=Vector2D(
+        #         300, 300), velocity=Vector2D(-20, -20), mass=200, elasticity=0.7, radius=20)
+        # )
+        # self.physicsManager.addObj(
+        #     PhysicsCircle(self, pos=Vector2D(250, 300), velocity=Vector2D(
+        #         1, 0.5), mass=50, elasticity=0.7, radius=5)
+        # )
 
         self.map = Map(self)
         self.map.load(os.path.join("Map", "base"))
+
+        #self.map.save(os.path.join("Map", "test3"))
 
         # self.map.addWallH((0, 0), self.w)
         # self.map.addWallH((0, self.h), self.w)
         # self.map.addWallV((0, 0), self.h)
         # self.map.addWallV((self.w, 0), self.h)
 
-        #self.map.save(os.path.join("Map", "base"))
+
 
         #
         # self.map.addWall((100, 100), (700, 500))
@@ -84,6 +93,41 @@ class PhysicsSim2D(Base2DGame):
             self.golobalElasicityModifer = self.golobalElasicityModifer - 0.1
             print("elasticity mod=",self.golobalElasicityModifer)
             
+
+
+        if self.key.heldDown(pygame.K_UP):
+            self.spawnSpeed += 1
+            print("speed:", self.spawnSpeed)
+
+        if self.key.heldDown(pygame.K_DOWN):
+            self.spawnSpeed -= 1
+            print("speed:", self.spawnSpeed)
+
+        if self.mouse.mouseUp(1):
+            if self.startPos is None:
+                self.startPos = self.mouse.getPos()
+            else:
+                self.endPos = self.mouse.getPos()
+                self.physicsManager.addObj(
+                    PhysicsCircle(self,
+                              pos=Vector2D.fromIterable(self.startPos),
+                              velocity=Vector2D.asUnitVector(Vector2D.fromIterable(self.endPos)-Vector2D.fromIterable(self.startPos)) * self.spawnSpeed,
+                              mass=50,
+                              elasticity=0.7,
+                              radius=20
+                    )
+                )
+
+
+                self.startPos, self.endPos = None, None
+
+        if self.mouse.heldDown(3) and self.lastSpawn <= 0:
+            self.physicsManager.addObj(
+                PhysicsCircle(self, pos=Vector2D.fromIterable(self.mouse.getPos()), velocity=Vector2D(
+                    0, 0), mass=50, elasticity=0.7, radius=20)
+            )
+            self.lastSpawn = self.spawnDelay
+        self.lastSpawn -= 1
 
             
     def loop(self):
