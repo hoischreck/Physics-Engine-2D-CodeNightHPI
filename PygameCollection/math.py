@@ -367,7 +367,7 @@ class Line2D:
 		if mSelf is None and mOther is None:
 			return None
 		elif mSelf == mOther:
-			return NoneType
+			return None
 		elif mSelf == None:
 			x = xSelf
 		elif mOther == None:
