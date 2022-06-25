@@ -24,10 +24,10 @@ class BaseDrawingQueue:
 
 
 class Base2DGame(ABC):
-	def __init__(self, name="[PLACEHOLDER]", tps=60):
+	def __init__(self, name="[PLACEHOLDER]", windowSize=(1920,1080), tps=60):
 		pygame.init()
 		self.name = name
-		self.windowSize = (1920, 1080)
+		self.windowSize = windowSize
 		self.w, self.h = self.windowSize
 		self.windowCaption = "WindowCaption"
 		self.backgroundColor = (255, 255, 255)

@@ -1,5 +1,6 @@
 import math
 from math import pi, sin, cos, acos, tan
+from types import NoneType
 import numpy as np
 
 
@@ -364,16 +365,16 @@ class Line2D:
 
 		# jeweils unendliche Steigung
 		if mSelf is None and mOther is None:
-			return self.start.x == line.start.x
+			return None
 		elif mSelf == mOther:
-			return False
+			return NoneType
 		elif mSelf == None:
 			x = xSelf
 		elif mOther == None:
 			x = xOther
 		else:
 			x = (mOther*xOther-mSelf*xSelf+ySelf-yOther)/(mOther-mSelf)
-		y = mSelf*(x-xSelf)+ySelf
+		y = mSelf*(x-xSelf)+ySelf if mSelf is not None else yOther
 
 
 		if self.includesPoint(x, y) and line.includesPoint(x, y):
