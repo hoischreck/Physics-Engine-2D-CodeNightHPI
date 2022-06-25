@@ -82,16 +82,16 @@ class PhysicsCircle(PhysicsObj):
                 #pygame.draw.circle(self.screen, (255, 0, 0), p, 5)
                 d = self.pos-collision_pos
                 du = Vector2D.asUnitVector(d)
-                self.pos = self.pos + du * (self.radius-d.magnitude())
+
+                # self.pos = self.pos + du * (self.radius-d.magnitude())
+                self.step_movement = self.step_movement + (du * (self.radius-d.magnitude()))
 
             else:
-                print(collision_pos)
                 d = Vector2D.asUnitVector(base_line.dV)
                 d.toCounter()
 
+                # todo
                 self.pos = Vector2D.fromIterable(collision_pos) + d * self.radius/sin(d.enclosedAngle(wall.line.dV))
-
-            #self.v = wall.line.reflectVector(self.v)
 
             self.step_acc = self.step_acc - self.v
             self.step_acc = self.step_acc + wall.line.reflectVector(self.v)
@@ -99,7 +99,7 @@ class PhysicsCircle(PhysicsObj):
             self.apply_elasticity = True
 
     def gravity(self, dt, other: PhysicsObj):
-        G = 6.6743 * 10 ** -11
+        G = 1
         distance = other.pos - self.pos
         gravityForce = G * (self.mass * other.mass) / \
             (distance.magnitude() ** 2)
@@ -116,6 +116,9 @@ class PhysicsCircle(PhysicsObj):
             self.v = self.v * self.elasticity
             self.apply_elasticity = False
         self.step_acc = Vector2D(0, 0)
+
+        # damping
+        self.v = self.v * 0.999
 
         if self.pos.x > 1000000 or self.pos.y > 1000000:
             self.v = Vector2D(0, 0)

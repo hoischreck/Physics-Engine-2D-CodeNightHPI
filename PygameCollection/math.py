@@ -1,3 +1,4 @@
+from cmath import isnan
 import math
 from math import pi, sin, cos, acos, tan
 from types import NoneType
@@ -376,7 +377,8 @@ class Line2D:
 			x = (mOther*xOther-mSelf*xSelf+ySelf-yOther)/(mOther-mSelf)
 		y = mSelf*(x-xSelf)+ySelf if mSelf is not None else yOther
 
-
+		if isnan(x) or isnan(y):
+			return None
 		if self.includesPoint(x, y) and line.includesPoint(x, y):
 			return x, y
 		return None

@@ -24,39 +24,35 @@ class PhysicsSim2D(Base2DGame):
 
         self.physicsManager = PhysicsManager(self)
 
-        for _ in range(0, 10):
-            radius = randrange(20, 80)
+        for _ in range(0, 25):
+            radius = randrange(20, 40)
             self.physicsManager.addObj(
                 PhysicsCircle(self, pos=Vector2D(
                     random() * self.windowSize[0], random() * self.windowSize[1]), velocity=Vector2D(
-                    randrange(-20, 20), randrange(-20, 20)), mass=radius, elasticity=randrange(10, 99) / 100, radius=radius)
+                    randrange(-20, 20), randrange(-20, 20)), mass=radius, elasticity=randrange(30, 90) / 100, radius=radius)
             )
 
         self.physicsManager.addObj(
             PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(
-                15, 20), mass=500, elasticity=0.9, radius=50)
+                15, 20), mass=500, elasticity=0.7, radius=50)
         )
         self.physicsManager.addObj(
             PhysicsCircle(self, pos=Vector2D(
-                300, 300), velocity=Vector2D(-20, -20), mass=200, elasticity=0.9, radius=20)
+                300, 300), velocity=Vector2D(-20, -20), mass=200, elasticity=0.7, radius=20)
         )
         self.physicsManager.addObj(
             PhysicsCircle(self, pos=Vector2D(250, 300), velocity=Vector2D(
-                1, 0.5), mass=50, elasticity=0.9, radius=5)
+                1, 0.5), mass=50, elasticity=0.7, radius=5)
         )
 
         self.map = Map(self)
-        #self.map.walls.add(Wall(self, Vector2D(200, 200), Vector2D(700, 210)))
-        #self.map.walls.add(Wall(self, Vector2D(100, 400), Vector2D(1000, 300)))
 
-        # self.map.addWallH((100, 100), 800)
-        # self.map.addWallH((100, 400), 800)
-        # self.map.addWallV((100, 100), 300)
-        # self.map.addWallV((900, 100), 300)
         self.map.addWallH((0, 0), self.w)
         self.map.addWallH((0, self.h), self.w)
         self.map.addWallV((0, 0), self.h)
         self.map.addWallV((self.w, 0), self.h)
+
+        self.map.addWall((100, 100), (700, 500))
 
         self.drawingQueue.append(self.physicsManager)
         self.drawingQueue.append(self.map)
@@ -65,7 +61,7 @@ class PhysicsSim2D(Base2DGame):
         self.physicsManager.applyStep()
         self.physicsManager.applyCollisions()
         self.physicsManager.applyCollisionsMap()
-        # self.physicsManager.applyGravity()
+        #self.physicsManager.applyGravity()
         self.physicsManager.applyPostCollisions()
 
 
