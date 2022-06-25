@@ -22,6 +22,7 @@ class PhysicsObj(GraphicalObj):  # ABC
 
         self.mass = mass
         self.elasticity = elasticity
+        self.apply_elasticity = False
 
         self.v = velocity
         self.color = (0, 0, 0, 0)
@@ -37,7 +38,7 @@ class PhysicsObj(GraphicalObj):  # ABC
         if distance.magnitude() < (self.radius + other.radius):
             # move back
             speed_factor = 0
-            if self.v.magnitude() > 0:
+            if not self.v.isZero():
                 speed_factor = self.v.magnitude() / (self.v.magnitude() + other.v.magnitude())
 
             distance_intersecting = (
@@ -66,25 +67,30 @@ class PhysicsObj(GraphicalObj):  # ABC
 
             self.step_acc = self.step_acc + diff
 
+            if not diff.isZero():
+                self.apply_elasticity = True
+
+    def gravity(self, dt, other: PhysicsObj):
+        G = 6.6743 * 10 ** -11
+        distance = other.pos - self.pos
+        gravityForce = G * (self.mass * other.mass) / \
+            (distance.magnitude() ** 2)
+        distance.toUnitVec()
+        distance = distance * gravityForce
+        self.step_acc = self.step_acc + distance
+
     def postCollide(self, dt: float):
         self.pos = self.pos + self.step_movement
         self.step_movement = Vector2D(0, 0)
 
         self.v = self.v + self.step_acc
-        if self.step_acc.magnitude() > 0:
+        if self.apply_elasticity:
             self.v = self.v * self.elasticity
+            self.apply_elasticity = False
         self.step_acc = Vector2D(0, 0)
 
         if self.pos.x > 1000000 or self.pos.y > 1000000:
             self.v = Vector2D(0, 0)
-
-    def gravity(self,dt ,other:PhysicsObj):
-        G = 6.6743 * 10** -11
-        distance = other.pos - self.pos
-        gravityForce = G * (self.mass * other.mass) / (distance.magnitude() ** 2)
-        distance.toUnitVec()
-        distance=distance * gravityForce
-        self.step_acc = self.step_acc + distance
 
 
 class PhysicsCircle(PhysicsObj):
@@ -158,17 +164,18 @@ class PhysicsSim2D(Base2DGame):
         #             random() * self.windowSize[0], random() * self.windowSize[1]), velocity=Vector2D(
         #             randrange(-20, 20), randrange(-20, 20)), mass=radius, elasticity=randrange(10, 99) / 100, radius=radius)
         #     )
+
         self.physicsManager.addObj(
             PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(
-                15, 20), mass=(5.972 * (10 ** 12)) , elasticity=0.3, radius=50)
+                15, 20), mass=(5.972 * (10 ** 12)), elasticity=0.1, radius=50)
         )
         self.physicsManager.addObj(
             PhysicsCircle(self, pos=Vector2D(
-                400, 400), velocity=Vector2D(-20, -20), mass=200, elasticity=0.8, radius=20)
+                400, 400), velocity=Vector2D(-20, -20), mass=200, elasticity=0.1, radius=20)
         )
         self.physicsManager.addObj(
             PhysicsCircle(self, pos=Vector2D(450, 300), velocity=Vector2D(
-                1, 0.5), mass=50, elasticity=0.9, radius=5)
+                1, 0.5), mass=50, elasticity=0.1, radius=5)
         )
 
         self.drawingQueue.append(self.physicsManager)
