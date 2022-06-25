@@ -1,4 +1,5 @@
 from __future__ import annotations
+from random import random, randrange
 
 from numpy import tan
 
@@ -58,7 +59,9 @@ class PhysicsObj(GraphicalObj):  # ABC
 
             # calculate difference between new speed and current speed
             diff = v - self.v
-            diff = tangentLine.reflectVector(diff)
+
+            if diff.magnitude() > 0 and diff.magnitude() < 1000000:
+                diff = tangentLine.reflectVector(diff)
 
             self.step_acc = self.step_acc + diff
 
@@ -71,6 +74,9 @@ class PhysicsObj(GraphicalObj):  # ABC
             self.v = self.v * self.elasticity
         self.step_acc = Vector2D(0, 0)
 
+        if self.pos.x > 1000000 or self.pos.y > 1000000:
+            self.v = Vector2D(0, 0)
+        
 
 class PhysicsCircle(PhysicsObj):
     def __init__(self, game, pos, velocity, mass, elasticity, radius):
@@ -130,18 +136,25 @@ class PhysicsSim2D(Base2DGame):
 
         self.physicsManager = PhysicsManager()
 
-        self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(
-                15, 20), mass=500, elasticity=0.3, radius=50)
-        )
-        self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(
-                400, 400), velocity=Vector2D(-20, -20), mass=200, elasticity=0.8, radius=20)
-        )
-        self.physicsManager.addObj(
-            PhysicsCircle(self, pos=Vector2D(450, 300), velocity=Vector2D(
-                1, 0.5), mass=50, elasticity=0.9, radius=5)
-        )
+        # self.physicsManager.addObj(
+        #     PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(
+        #         15, 20), mass=500, elasticity=0.3, radius=50)
+        # )
+        # self.physicsManager.addObj(
+        #     PhysicsCircle(self, pos=Vector2D(
+        #         400, 400), velocity=Vector2D(-20, -20), mass=200, elasticity=0.8, radius=20)
+        # )
+        # self.physicsManager.addObj(
+        #     PhysicsCircle(self, pos=Vector2D(450, 300), velocity=Vector2D(
+        #         1, 0.5), mass=50, elasticity=0.9, radius=5)
+        # )
+        for _ in range(0, 100):
+            radius = randrange(20, 80)
+            self.physicsManager.addObj(
+                PhysicsCircle(self, pos=Vector2D(
+                    random() * self.windowSize[0], random() * self.windowSize[1]), velocity=Vector2D(
+                    randrange(-20, 20), randrange(-20, 20)), mass=radius, elasticity=randrange(10, 99) / 100, radius=radius)
+            )
 
         self.drawingQueue.append(self.physicsManager)
 
