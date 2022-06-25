@@ -2,6 +2,7 @@ from __future__ import annotations
 from random import random, randrange
 
 from numpy import tan
+from numpy.core.multiarray import may_share_memory
 
 from PygameCollection.game import Base2DGame
 from PygameCollection.gameObjects import GraphicalObj
@@ -76,7 +77,15 @@ class PhysicsObj(GraphicalObj):  # ABC
 
         if self.pos.x > 1000000 or self.pos.y > 1000000:
             self.v = Vector2D(0, 0)
-        
+
+    def gravity(self,dt ,other:PhysicsObj):
+        G = 6.6743 * 10** -11
+        distance = other.pos - self.pos
+        gravityForce = G * (self.mass * other.mass) / (distance.magnitude() ** 2)
+        distance.toUnitVec()
+        distance=distance * gravityForce
+        self.step_acc = self.step_acc + distance
+
 
 class PhysicsCircle(PhysicsObj):
     def __init__(self, game, pos, velocity, mass, elasticity, radius):
@@ -111,6 +120,12 @@ class PhysicsManager:
         for obj in self.physicObjs:
             obj.step(self.dt)
 
+    def applyGravity(self):
+        for obj in self.physicObjs:
+            for other in self.physicObjs:
+                if obj is not other:
+                    obj.gravity(self.dt, other)
+
     def applyCollisions(self):
         for obj in self.physicObjs:
             for other in self.physicObjs:
@@ -136,25 +151,25 @@ class PhysicsSim2D(Base2DGame):
 
         self.physicsManager = PhysicsManager()
 
-        # self.physicsManager.addObj(
-        #     PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(
-        #         15, 20), mass=500, elasticity=0.3, radius=50)
-        # )
-        # self.physicsManager.addObj(
-        #     PhysicsCircle(self, pos=Vector2D(
-        #         400, 400), velocity=Vector2D(-20, -20), mass=200, elasticity=0.8, radius=20)
-        # )
-        # self.physicsManager.addObj(
-        #     PhysicsCircle(self, pos=Vector2D(450, 300), velocity=Vector2D(
-        #         1, 0.5), mass=50, elasticity=0.9, radius=5)
-        # )
-        for _ in range(0, 100):
-            radius = randrange(20, 80)
-            self.physicsManager.addObj(
-                PhysicsCircle(self, pos=Vector2D(
-                    random() * self.windowSize[0], random() * self.windowSize[1]), velocity=Vector2D(
-                    randrange(-20, 20), randrange(-20, 20)), mass=radius, elasticity=randrange(10, 99) / 100, radius=radius)
-            )
+        # for _ in range(0, 100):
+        #     radius = randrange(20, 80)
+        #     self.physicsManager.addObj(
+        #         PhysicsCircle(self, pos=Vector2D(
+        #             random() * self.windowSize[0], random() * self.windowSize[1]), velocity=Vector2D(
+        #             randrange(-20, 20), randrange(-20, 20)), mass=radius, elasticity=randrange(10, 99) / 100, radius=radius)
+        #     )
+        self.physicsManager.addObj(
+            PhysicsCircle(self, pos=Vector2D(200, 200), velocity=Vector2D(
+                15, 20), mass=(5.972 * (10 ** 12)) , elasticity=0.3, radius=50)
+        )
+        self.physicsManager.addObj(
+            PhysicsCircle(self, pos=Vector2D(
+                400, 400), velocity=Vector2D(-20, -20), mass=200, elasticity=0.8, radius=20)
+        )
+        self.physicsManager.addObj(
+            PhysicsCircle(self, pos=Vector2D(450, 300), velocity=Vector2D(
+                1, 0.5), mass=50, elasticity=0.9, radius=5)
+        )
 
         self.drawingQueue.append(self.physicsManager)
 
@@ -162,6 +177,7 @@ class PhysicsSim2D(Base2DGame):
         self.physicsManager.applyStep()
         self.physicsManager.applyCollisions()
         self.physicsManager.applyPostCollisions()
+        self.physicsManager.applyGravity()
 
 
 if __name__ == "__main__":
