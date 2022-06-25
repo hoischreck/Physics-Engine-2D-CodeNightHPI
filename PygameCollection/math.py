@@ -272,7 +272,7 @@ class Line2D:
 		if v.enclosedAngle(normVec) > pi / 2:
 			normVec.toCounter()  # todo: change logic to return a new vector?
 		v = Vector2D.fromSymReflection(v, normVec)
-		v.toUnitVec()
+		# v.toUnitVec()
 		v.toCounter()
 		return v
 
