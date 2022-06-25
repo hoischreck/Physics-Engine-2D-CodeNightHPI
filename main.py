@@ -22,6 +22,7 @@ class PhysicsSim2D(Base2DGame):
         self.gravityGobal = True
         self.objectGravity = False
         self.collisionActive = True
+        self.golobalElasicityModifer = 1
 
     def setup(self):
         clock = pygame.time.Clock()
@@ -76,6 +77,12 @@ class PhysicsSim2D(Base2DGame):
         if(self.key.keyUp(pygame.K_c)):
             self.collisionActive= not self.collisionActive
             print("Collisions",self.collisionActive)
+        if(self.key.keyUp(pygame.K_e)):
+            self.golobalElasicityModifer = self.golobalElasicityModifer + 0.1
+            print("elasticity mod=",self.golobalElasicityModifer)
+        if(self.key.keyUp(pygame.K_u)):
+            self.golobalElasicityModifer = self.golobalElasicityModifer - 0.1
+            print("elasticity mod=",self.golobalElasicityModifer)
             
 
             
