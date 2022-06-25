@@ -43,7 +43,7 @@ class Map(GraphicalObj):
         # saves each wall as a 4 values (start_x, start_y, end_x, end_y)
         with open(f"{filepath}.csv", "w", newline="", encoding="utf8") as f:
             csvWriter = csv.writer(f, delimiter=Map.DATA_DELIMITER)
-            csvWriter.writerows([(*w.start.toTuple(), *w.end.toTuple()) for w in self.walls])
+            csvWriter.writerows([(*w.line.start.toTuple(), *w.end.line.toTuple()) for w in self.walls])
 
     def load(self, filepath):
         with open(f"{filepath}.csv", "r", encoding="utf8") as f:

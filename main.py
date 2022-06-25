@@ -58,7 +58,7 @@ class PhysicsSim2D(Base2DGame):
         self.map.addWallV((0, 0), self.h)
         self.map.addWallV((self.w, 0), self.h)
 
-        #self.map.save(os.path.join("Map", "test2"))
+        self.map.save(os.path.join("Map", "base"))
 
         #
         # self.map.addWall((100, 100), (700, 500))
