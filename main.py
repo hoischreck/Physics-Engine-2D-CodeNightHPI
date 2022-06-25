@@ -6,10 +6,55 @@ from numpy.core.multiarray import may_share_memory
 
 from PygameCollection.game import Base2DGame
 from PygameCollection.gameObjects import GraphicalObj
-from PygameCollection.math import Line2D, Vector2D
+from PygameCollection.math import Line2D, Straight2D, Vector2D
 from abc import ABC, abstractmethod
+from math import sin, pi
 import pygame
 pygame.init()
+
+from PygameCollection.utils import showVector
+
+class Wall(GraphicalObj):
+    def __init__(self, game, start: Vector2D, end: Vector2D):
+        super().__init__(game)
+        self.line = Line2D(start, end)
+        self.color = (0, 0, 0, 0)
+        self.width = 2
+
+    def draw(self, screen=None):
+        s = self.screen if screen is None else screen
+        pygame.draw.line(s, self.color, self.line.start.toTuple(), self.line.end.toTuple(), self.width)
+
+
+class Map(GraphicalObj):
+    def __init__(self, game):
+        super().__init__(game)
+        self.walls = list()
+
+    def addWall(self, start, end):
+        self.walls.append(Wall(self.game, Vector2D.fromIterable(start), Vector2D.fromIterable(end)))
+
+    def addWalls(self, startEndTuples):
+        for w in startEndTuples:
+            self.addWall(*w)
+
+    def removeWall(self, wall):
+        self.walls.remove(wall)
+
+    def removeLast(self, minAmount=0):
+        if len(self.walls) > minAmount:
+            del self.walls[-1]
+
+    def addWallH(self, start, length):
+        self.addWall(start, (start[0] + length, start[1]))
+
+    def addWallV(self, start, length):
+        self.addWall(start, (start[0], start[1] + length))
+
+    def draw(self, screen=None):
+        s = self.screen if screen is None else screen
+        for w in self.walls:
+            w.draw(s)
 
 
 class PhysicsObj(GraphicalObj):  # ABC
@@ -28,6 +73,9 @@ class PhysicsObj(GraphicalObj):  # ABC
         self.color = (0, 0, 0, 0)
 
     def step(self, dt: float):
+        # gravity
+        self.v = self.v + PhysicsManager.G * dt
+
         self.v = self.v + Vector2D(0, 0)  # todo acceleration
 
         self.prev_pos = self.pos
@@ -104,6 +152,41 @@ class PhysicsCircle(PhysicsObj):
         s = self.screen if screen is None else screen
         pygame.draw.circle(s, self.color, self.pos.toTuple(), self.radius, 1)
 
+    def step(self, dt: float):
+        prevPos = self.pos
+
+        self.v = self.v + PhysicsManager.G * dt
+        self.pos = self.pos + self.v
+
+
+        baseLine = Line2D(prevPos, self.pos)
+        offsetH = Vector2D.asUnitVector(baseLine.dV) * self.radius
+
+        lineMiddle = Line2D(baseLine.start+offsetH, baseLine.end-offsetH)
+        #
+
+        # todo: check against wall glitching
+        # todo: edge case: Ball schneidet ein ganzes Vielfaches von (2k-1)*45°
+
+        pointCollision = False
+        for w in self.game.map.walls:
+            if (p := lineMiddle.intersectsLinePos(w.line)) is not None or (pointCollision := ((w.line.distanceToPoint(*self.pos.toTuple())) <= self.radius)):
+                if pointCollision:
+                    p = w.line.closestPointOnLine(*self.pos.toTuple())
+                    #pygame.draw.circle(self.screen, (255, 0, 0), p, 5)
+
+                d = Vector2D.asUnitVector(baseLine.dV)
+                d.toCounter()
+
+                self.pos = Vector2D.fromIterable(p) + d * self.radius/sin(d.enclosedAngle(w.line.dV))
+
+                self.v = w.line.reflectVector(self.v)
+
+                #todo: more collision possible?
+                break
+
+
+
 
 class PhysicsManager:
     G = Vector2D(0, 9.81 / 10)
@@ -149,7 +232,7 @@ class PhysicsSim2D(Base2DGame):
         # self.windowCaption = "2D-Physics-Engine" #todo: implement
         self.windowSize = (1080, 720)
         self.physicsManager = None
-        self.tps = 30
+        self.tps = 60
 
     def setup(self):
         clock = pygame.time.Clock()
@@ -177,8 +260,19 @@ class PhysicsSim2D(Base2DGame):
             PhysicsCircle(self, pos=Vector2D(450, 300), velocity=Vector2D(
                 1, 0.5), mass=50, elasticity=0.1, radius=5)
         )
+        
+        
+        self.map = Map(self)
+        #self.map.walls.add(Wall(self, Vector2D(200, 200), Vector2D(700, 210)))
+        #self.map.walls.add(Wall(self, Vector2D(100, 400), Vector2D(1000, 300)))
+
+        self.map.addWallH((100, 100), 800)
+        self.map.addWallH((100, 400), 800)
+        self.map.addWallV((100, 100), 300)
+        self.map.addWallV((900, 100), 300)
 
         self.drawingQueue.append(self.physicsManager)
+        self.drawingQueue.append(self.map)
 
     def loop(self):
         self.physicsManager.applyStep()
@@ -186,6 +280,7 @@ class PhysicsSim2D(Base2DGame):
         self.physicsManager.applyPostCollisions()
         self.physicsManager.applyGravity()
 
+        #showVector(self.screen, self.c.v, *self.c.pos.toTuple())
 
 if __name__ == "__main__":
     i = PhysicsSim2D()
