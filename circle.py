@@ -112,7 +112,7 @@ class PhysicsCircle(PhysicsObj):
 
         self.v = self.v + self.step_acc
         if self.apply_elasticity:
-            self.v = self.v * self.elasticity
+            self.v = self.v * self.elasticity * self.game.golobalElasicityModifer;
             self.apply_elasticity = False
         self.step_acc = Vector2D(0, 0)
 
