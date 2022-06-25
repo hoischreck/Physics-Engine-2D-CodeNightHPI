@@ -18,9 +18,8 @@ class PhysicsCircle(PhysicsObj):
         pygame.draw.circle(s, self.color, self.pos.toTuple(), self.radius, 1)
 
     def step(self, dt: float):
-        # gravity
-        self.v = self.v + PhysicsManager.G * dt
-
+        if(self.game.gravityGobal):
+            self.v = self.v + PhysicsManager.G * dt
         self.prev_pos = self.pos
         self.pos = self.pos + (self.v * dt)
 

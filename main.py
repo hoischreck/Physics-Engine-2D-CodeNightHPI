@@ -1,6 +1,8 @@
 from __future__ import annotations
 from random import random, randrange
 
+from numpy import true_divide
+
 from map import Map
 from circle import PhysicsCircle
 from physics import PhysicsManager
@@ -17,6 +19,9 @@ class PhysicsSim2D(Base2DGame):
         # self.windowCaption = "2D-Physics-Engine" #todo: implement
         self.physicsManager = None
         self.tps = 60
+        self.gravityGobal = True
+        self.objectGravity = False
+        self.collisionActive = True
 
     def setup(self):
         clock = pygame.time.Clock()
@@ -61,11 +66,27 @@ class PhysicsSim2D(Base2DGame):
         self.drawingQueue.append(self.physicsManager)
         self.drawingQueue.append(self.map)
 
+    def handelInput(self):
+        if(self.key.keyUp(pygame.K_o)):
+            self.objectGravity= not self.objectGravity
+            print("Object Gravity",self.objectGravity)
+        if(self.key.keyUp(pygame.K_g)):
+            self.gravityGobal= not self.gravityGobal
+            print("Golbal Gravity",self.gravityGobal)
+        if(self.key.keyUp(pygame.K_c)):
+            self.collisionActive= not self.collisionActive
+            print("Collisions",self.collisionActive)
+            
+
+            
     def loop(self):
+        self.handelInput()
         self.physicsManager.applyStep()
-        self.physicsManager.applyCollisions()
+        if(self.collisionActive):
+            self.physicsManager.applyCollisions()
         self.physicsManager.applyCollisionsMap()
-        #self.physicsManager.applyGravity()
+        if(self.objectGravity):
+             self.physicsManager.applyGravity()
         self.physicsManager.applyPostCollisions()
 
 
